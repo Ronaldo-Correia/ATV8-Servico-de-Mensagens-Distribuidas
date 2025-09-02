@@ -91,7 +91,7 @@ Cada nó deve ser iniciado com:
 java -cp target/classes br.ifba.saj.nac.wall.Main <nodeId> <porta> <peer1Host:port,peer2Host:port>
 ```
 
-No Windows execute os 3 comandos em um único terminal:
+Ou se quiser de maneira mais rápida,no Windows execute os 3 comandos em um único terminal:
 ```
 start cmd /k "java -cp target/classes br.ifba.saj.nac.wall.Main A 9001 127.0.0.1:9002,127.0.0.1:9003"
 start cmd /k "java -cp target/classes br.ifba.saj.nac.wall.Main B 9002 127.0.0.1:9001,127.0.0.1:9003"
