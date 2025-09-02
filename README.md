@@ -10,7 +10,8 @@
 ## 📌 Projeto: Sistema Distribuído de Controle Colaborativo
 
 ### Objetivo:
-Desenvolver um sistema distribuído simples de publicação e leitura de mensagens entre múltiplos nós, explorando consistência eventual em cenários de falha de comunicação e controle básico de autenticação. 
+Desenvolver um sistema distribuído simples de publicação e leitura de mensagens entre múltiplos nós, explorando consistência eventual em cenários de falha de comunicação e controle básico de autenticação.
+
 ---
 ## Integrantes do Projeto
 
