@@ -82,7 +82,7 @@ Ou, se quiser compilar manualmente:
 ```
 javac -d out src/br/ifba/saj/nac/wall/**/*.java
 ```
-4.🚦 Execute os nós(3 terminais):
+4. 🚦 Execute os nós(3 terminais):
 
 Você precisará de 3 terminais abertos. Em cada um, execute um nó com um nodeId, uma porta e a lista de peers (outros nós).
 
