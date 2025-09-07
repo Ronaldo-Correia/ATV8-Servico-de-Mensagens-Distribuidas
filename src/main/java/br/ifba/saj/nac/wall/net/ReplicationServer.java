@@ -10,6 +10,7 @@ import java.util.Collection;
 import br.ifba.saj.nac.wall.core.NodeState;
 import br.ifba.saj.nac.wall.model.Message;
 
+// Servidor que recebe mensagens de replicação de peers
 public class ReplicationServer implements Runnable {
     private final NodeState state;
     private final int port;
@@ -25,33 +26,35 @@ public class ReplicationServer implements Runnable {
             System.out.println("ReplicationServer rodando na porta " + port);
             while (true) {
                 Socket client = server.accept();
-                new Thread(() -> handleClient(client)).start();
+                new Thread(() -> handleClient(client)).start(); // cada conexão em uma thread
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    // Processa mensagens recebidas do peer
     private void handleClient(Socket client) {
-    try (ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
-         ObjectInputStream in = new ObjectInputStream(client.getInputStream())) {
+        try (ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
+                ObjectInputStream in = new ObjectInputStream(client.getInputStream())) {
 
-        if (state.isFailMode()) return;
+            if (state.isFailMode())
+                return; // ignora se nó está em falha
 
-        Object received = in.readObject();
-        if (received instanceof Collection<?>) {
-            @SuppressWarnings("unchecked")
-            Collection<Message> messages = (Collection<Message>) received;
-            for (Message msg : messages) {
-                state.addMessage(msg);
+            Object received = in.readObject();
+            if (received instanceof Collection<?>) {
+                @SuppressWarnings("unchecked")
+                Collection<Message> messages = (Collection<Message>) received;
+                for (Message msg : messages) {
+                    state.addMessage(msg); // adiciona mensagens recebidas
+                }
+                out.writeObject(state.getMessages()); // responde com mensagens locais
+                out.flush();
             }
-            out.writeObject(state.getMessages());
-            out.flush();
-        }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
 
 }

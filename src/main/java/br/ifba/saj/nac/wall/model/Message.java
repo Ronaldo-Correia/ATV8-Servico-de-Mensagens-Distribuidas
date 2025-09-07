@@ -2,6 +2,7 @@ package br.ifba.saj.nac.wall.model;
 
 import java.io.Serializable;
 
+// Representa uma mensagem do mural
 public class Message implements Serializable {
     private String id;
     private String user;

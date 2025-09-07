@@ -1,14 +1,15 @@
 package br.ifba.saj.nac.wall.replication;
 
-import br.ifba.saj.nac.wall.core.NodeState;
-import br.ifba.saj.nac.wall.core.ReplicationManager;
-import br.ifba.saj.nac.wall.model.Message;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Collection;
 
+import br.ifba.saj.nac.wall.core.NodeState;
+import br.ifba.saj.nac.wall.core.ReplicationManager;
+import br.ifba.saj.nac.wall.model.Message;
+
+// Tarefa periódica de sincronização entre peers
 public class AntiEntropyTask implements Runnable {
     private final NodeState state;
     private final String peersCsv;
@@ -32,19 +33,20 @@ public class AntiEntropyTask implements Runnable {
                         int port = Integer.parseInt(parts[1]);
 
                         try (Socket socket = new Socket(host, port);
-                             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+                                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                                ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
                             Collection<Message> messages = state.getMessages();
-                            out.writeObject(messages);
+                            out.writeObject(messages); // envia mensagens locais
                             out.flush();
 
                             Object response = in.readObject();
                             if (response instanceof Collection<?>) {
                                 @SuppressWarnings("unchecked")
                                 Collection<Message> incoming = (Collection<Message>) response;
-                                manager.reconcile(incoming);
-                                System.out.println("🔁 Reconciliação com " + peer + ": recebidas " + incoming.size() + " msgs.");
+                                manager.reconcile(incoming); // reconcilia mensagens recebidas
+                                System.out.println(
+                                        "🔁 Reconciliação com " + peer + ": recebidas " + incoming.size() + " msgs.");
                             }
 
                         } catch (Exception e) {
@@ -53,7 +55,7 @@ public class AntiEntropyTask implements Runnable {
                     }
                 }
 
-                Thread.sleep(5000);
+                Thread.sleep(5000); // espera 5s para próxima rodada
             } catch (InterruptedException e) {
                 break;
             }
