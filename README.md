@@ -38,7 +38,9 @@ src/
         └── saj/
             └── nac/
                 └── wall/
-                    ├── Main.java                        # Classe principal (inicialização do nó)
+                    ├── Main.java
+                    ├── auth/
+                          ├── AuthService.java          # Responsavel pela logica de autenticação
                     ├── core/
                     │   ├── NodeState.java              # Estado local do nó (mensagens, relógio, peers)
                     │   ├── MessageService.java         # Lógica de postagem e replicação
