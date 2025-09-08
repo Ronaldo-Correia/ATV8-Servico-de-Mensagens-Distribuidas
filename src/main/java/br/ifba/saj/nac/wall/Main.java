@@ -1,18 +1,16 @@
 package br.ifba.saj.nac.wall;
 
-import java.util.Arrays;
-import java.util.List;
-
-import br.ifba.saj.nac.wall.core.MessageService; // ✅ IMPORTADO
+import java.util.*;
+import br.ifba.saj.nac.wall.core.MessageService;
 import br.ifba.saj.nac.wall.core.NodeState;
 import br.ifba.saj.nac.wall.core.ReplicationManager;
 import br.ifba.saj.nac.wall.net.ReplicationServer;
 import br.ifba.saj.nac.wall.replication.AntiEntropyTask;
 import br.ifba.saj.nac.wall.simulation.FailureSimulator;
+import br.ifba.saj.nac.wall.auth.AuthService;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        // Verifica argumentos necessários
         if (args.length < 3) {
             System.err.println("Usage: Main <nodeId> <port> <peer1Host:peer1Port,...>");
             System.exit(1);
@@ -22,63 +20,105 @@ public class Main {
         int port = Integer.parseInt(args[1]);
         String peers = args[2];
 
-        // Cria estado do nó
         NodeState node = new NodeState(nodeId);
         List<String> peerList = Arrays.asList(peers.split(","));
         node.setPeers(peerList);
 
-        // Gerenciador de replicação e simulador de falha
         ReplicationManager manager = new ReplicationManager(node);
         FailureSimulator sim = new FailureSimulator(node);
 
-        // Inicia servidor de replicação em thread separada
         Thread serverThread = new Thread(new ReplicationServer(node, port));
         serverThread.start();
 
-        // Inicia tarefa de anti-entropia (sincronização periódica)
         Thread aet = new Thread(new AntiEntropyTask(node, peers));
         aet.setDaemon(true);
         aet.start();
 
         System.out.println(nodeId + " rodando na porta " + port + " com peers=" + peers);
 
-        // Serviço de mensagens para postar no mural
-        MessageService service = new MessageService(node);
+        // Usuários iniciais
+        Map<String, String> users = new HashMap<>();
+        users.put("alice", "123");
+        users.put("bob", "abc");
+        users.put("carol", "xyz");
+        AuthService auth = new AuthService(users);
 
-        // Thread para entrada de comandos pelo usuário
+        // Serviço de mensagens
+        MessageService service = new MessageService(node, auth);
+
+        // CLI de comandos
         Thread inputThread = new Thread(() -> {
-            java.util.Scanner scanner = new java.util.Scanner(System.in);
+            Scanner scanner = new Scanner(System.in);
             while (true) {
-                System.out.print("Comando (fail/recover/show/post): ");
+                System.out.print("Comando (register/login/post/logout/show/fail/recover): ");
                 String cmd = scanner.nextLine().trim().toLowerCase();
 
                 switch (cmd) {
-                    case "fail":
-                        node.setFailMode(true);
-                        System.out.println("⚠️ Nodo em modo de falha!");
+                    case "register":
+                        System.out.print("Novo usuário: ");
+                        String newUser = scanner.nextLine();
+                        if (auth.userExists(newUser)) {
+                            System.out.println("❌ Usuário já existe!");
+                            break;
+                        }
+                        System.out.print("Senha: ");
+                        String newPass = scanner.nextLine();
+                        auth.register(newUser, newPass);
+                        System.out.println("✅ Usuário registrado com sucesso!");
                         break;
-                    case "recover":
-                        node.setFailMode(false);
-                        System.out.println("✅ Nodo recuperado!");
+
+                    case "login":
+                        System.out.print("Usuário: ");
+                        String loginUser = scanner.nextLine();
+                        System.out.print("Senha: ");
+                        String loginPass = scanner.nextLine();
+                        if (auth.login(loginUser, loginPass)) {
+                            System.out.println("🔓 Login bem-sucedido!");
+                        } else {
+                            System.out.println("❌ Usuário ou senha inválidos!");
+                        }
                         break;
+
+                    case "post":
+                        System.out.print("Usuário: ");
+                        String userPost = scanner.nextLine();
+                        if (!auth.isAuthenticated(userPost)) {
+                            System.out.println("❌ Você precisa estar logado para postar!");
+                            break;
+                        }
+                        System.out.print("Mensagem: ");
+                        String text = scanner.nextLine();
+                        service.postMessage(userPost, text);
+                        System.out.println("✅ Mensagem enviada!");
+                        break;
+
+                    case "logout":
+                        System.out.print("Usuário: ");
+                        String u = scanner.nextLine();
+                        auth.logout(u);
+                        System.out.println("🔒 Logout realizado!");
+                        break;
+
                     case "show":
-                        // Exibe mensagens armazenadas
                         System.out.println("Mensagens armazenadas:");
                         for (var m : node.getMessages()) {
                             System.out.println(m.getUser() + ": " + m.getText() + " [" + m.getLamport() + "]");
                         }
                         break;
-                    case "post":
-                        // Posta nova mensagem no mural
-                        System.out.print("Usuário: ");
-                        String user = scanner.nextLine();
-                        System.out.print("Mensagem: ");
-                        String text = scanner.nextLine();
-                        service.postMessage(user, text);
-                        System.out.println("✅ Mensagem enviada!");
+
+                    case "fail":
+                        node.setFailMode(true);
+                        System.out.println("⚠️ Nodo em modo de falha!");
                         break;
+
+                    case "recover":
+                        node.setFailMode(false);
+                        System.out.println("✅ Nodo recuperado!");
+                        break;
+
                     default:
-                        System.out.println("Comando inválido.");
+                        System.out.println("❌ Comando inválido.");
+                        break;
                 }
             }
         });
@@ -86,7 +126,6 @@ public class Main {
         inputThread.setDaemon(true);
         inputThread.start();
 
-        // Mantém a thread principal viva
         Thread.currentThread().join();
     }
 }

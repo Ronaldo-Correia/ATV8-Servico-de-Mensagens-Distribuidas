@@ -1,11 +1,11 @@
-br\ifba\saj\nac\wall\model\Message.class
 br\ifba\saj\nac\wall\core\ReplicationManager.class
 br\ifba\saj\nac\wall\auth\AuthService.class
 br\ifba\saj\nac\wall\net\ReplicationServer.class
-br\ifba\saj\nac\wall\core\NodeState.class
 br\ifba\saj\nac\wall\replication\AntiEntropyTask.class
-br\ifba\saj\nac\wall\simulation\FailureSimulator.class
-br\ifba\saj\nac\wall\core\Wall.class
 br\ifba\saj\nac\wall\core\Node.class
 br\ifba\saj\nac\wall\Main.class
+br\ifba\saj\nac\wall\model\Message.class
+br\ifba\saj\nac\wall\core\NodeState.class
+br\ifba\saj\nac\wall\simulation\FailureSimulator.class
+br\ifba\saj\nac\wall\core\Wall.class
 br\ifba\saj\nac\wall\net\ReplicationClient.class
